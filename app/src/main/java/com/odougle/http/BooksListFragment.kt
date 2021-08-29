@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import com.odougle.http.adapter.BookListAdapter
 import com.odougle.http.databinding.FragmentBooksListBinding
 import com.odougle.http.model.Book
 import com.odougle.http.util.BookHttp
@@ -37,7 +38,7 @@ class BooksListFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, booksList)
+        adapter = BookListAdapter(requireContext(), booksList)
         binding.listView.emptyView = binding.txtMessage
         binding.listView.adapter = adapter
         if(booksList.isNotEmpty()){
