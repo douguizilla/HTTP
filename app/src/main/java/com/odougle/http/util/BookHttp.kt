@@ -3,8 +3,10 @@ package com.odougle.http.util
 import android.content.Context
 import android.net.ConnectivityManager
 import com.odougle.http.model.Book
+import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -46,5 +48,34 @@ object BookHttp {
             e.printStackTrace()
         }
         return null
+    }
+
+    @Throws(JSONException::class)
+    private fun readBooksFromJson(json: JSONObject): List<Book> {
+        val bookList = mutableListOf<Book>()
+        var currentCategory: String
+        val jsonNovatec = json.getJSONArray("novatec")
+        for(i in 0 until jsonNovatec.length()){
+            val jsonCategory = jsonNovatec.getJSONObject(i)
+            currentCategory = jsonCategory.getString("categoria")
+            val jsonBooks = jsonCategory.getJSONArray("livros")
+            for (j in 0 until jsonBooks.length()){
+                val jsonBook = jsonBooks.getJSONObject(j)
+                val book = Book(
+                    jsonBook.getString("titulo"),
+                    currentCategory,
+                    jsonBook.getString("autor"),
+                    jsonBook.getInt("ano"),
+                    jsonBook.getInt("paginas"),
+                    jsonBook.getString("capa")
+                )
+                bookList.add(book)
+            }
+        }
+        return bookList
+    }
+
+    private fun streamToString(inputStream: InputStream?): MutableMap<Any?, Any?>? {
+        TODO("Not yet implemented")
     }
 }
