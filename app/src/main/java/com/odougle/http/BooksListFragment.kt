@@ -13,19 +13,27 @@ import com.odougle.http.adapter.BookListAdapter
 import com.odougle.http.databinding.FragmentBooksListBinding
 import com.odougle.http.model.Book
 import com.odougle.http.util.BookHttp
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-class BooksListFragment : Fragment() {
+class BooksListFragment : Fragment(), CoroutineScope {
 
     private var _binding: FragmentBooksListBinding? = null
     private val binding get() = _binding!!
 
-    private var asyncTask: BooksDownloadTask? = null
     private val booksList = mutableListOf<Book>()
     private var adapter: ArrayAdapter<Book>? = null
+
+    private lateinit var job: Job
+    private var downloadJob: Job? = null
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true
+        job = Job()
     }
 
     override fun onCreateView(
@@ -44,23 +52,27 @@ class BooksListFragment : Fragment() {
         if(booksList.isNotEmpty()){
             showProgress(false)
         }else{
-            if(asyncTask == null){
+            if(downloadJob == null){
                 if(BookHttp.hasConnection(requireContext())){
                     startDownloadJson()
                 }else{
                     binding.progressBar.visibility = View.GONE
                     binding.txtMessage.setText(R.string.error_no_connection)
                 }
-            }else if(asyncTask?.status == AsyncTask.Status.RUNNING){
+            }else if(downloadJob?.isActive == true){
                 showProgress(true)
             }
         }
     }
 
     private fun startDownloadJson() {
-        if(asyncTask?.status != AsyncTask.Status.RUNNING){
-            asyncTask = BooksDownloadTask()
-            asyncTask?.execute()
+        downloadJob = launch {
+            showProgress(true)
+            val booksTask = withContext(Dispatchers.IO){
+                BookHttp.loadBooks()
+            }
+            updateBookList(booksTask)
+            showProgress(false)
         }
     }
 
@@ -80,26 +92,12 @@ class BooksListFragment : Fragment() {
             binding.txtMessage.setText(R.string.error_load_books)
         }
         adapter?.notifyDataSetChanged()
-        asyncTask = null
+        downloadJob = null
     }
 
 
-    inner class BooksDownloadTask : AsyncTask<Void, Void, List<Book>?>(){
-
-        override fun onPreExecute() {
-            super.onPreExecute()
-            showProgress(true)
-        }
-
-        override fun doInBackground(vararg params: Void?): List<Book>? {
-            return BookHttp.loadBooks()
-        }
-
-        override fun onPostExecute(livros: List<Book>?) {
-            super.onPostExecute(livros)
-            showProgress(false)
-            updateBookList(livros)
-        }
-
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
     }
 }
