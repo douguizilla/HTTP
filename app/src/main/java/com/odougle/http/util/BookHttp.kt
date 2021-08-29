@@ -5,10 +5,12 @@ import android.net.ConnectivityManager
 import com.odougle.http.model.Book
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.nio.charset.Charset
 
 object BookHttp {
     val BOOK_JSON_URL = "https://raw.githubusercontent.com/nglauber/" +
@@ -75,7 +77,16 @@ object BookHttp {
         return bookList
     }
 
-    private fun streamToString(inputStream: InputStream?): MutableMap<Any?, Any?>? {
-        TODO("Not yet implemented")
+    @Throws(IOException::class)
+    private fun streamToString(inputStream: InputStream): String {
+        val buffer = ByteArray(1024)
+        val bigBuffer = ByteArrayOutputStream()
+        var bytesRead: Int
+        while (true){
+            bytesRead = inputStream.read(buffer)
+            if(bytesRead == -1) break
+            bigBuffer.write(buffer, 0, bytesRead)
+        }
+        return String(bigBuffer.toByteArray(), Charset.forName("UTF-8"))
     }
 }
