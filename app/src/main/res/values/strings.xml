@@ -2,4 +2,8 @@
     <string name="app_name">HTTP</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="error_no_connection">Sem conexão</string>
+    <string name="error_load_books">Falha ao obter lista de livros</string>
+    <string name="message_progress">Baixando informações dos livros...</string>
 </resources>
