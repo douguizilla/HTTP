@@ -13,10 +13,11 @@ import com.odougle.http.adapter.BookListAdapter
 import com.odougle.http.databinding.FragmentBooksListBinding
 import com.odougle.http.model.Book
 import com.odougle.http.util.BookHttp
+import com.odougle.http.util.InternetFragment
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
-class BooksListFragment : Fragment(), CoroutineScope {
+class BooksListFragment : InternetFragment(), CoroutineScope {
 
     private var _binding: FragmentBooksListBinding? = null
     private val binding get() = _binding!!
@@ -52,16 +53,21 @@ class BooksListFragment : Fragment(), CoroutineScope {
         if(booksList.isNotEmpty()){
             showProgress(false)
         }else{
-            if(downloadJob == null){
-                if(BookHttp.hasConnection(requireContext())){
-                    startDownloadJson()
-                }else{
-                    binding.progressBar.visibility = View.GONE
-                    binding.txtMessage.setText(R.string.error_no_connection)
-                }
-            }else if(downloadJob?.isActive == true){
-                showProgress(true)
+            startDownload()
+        }
+    }
+
+    override fun startDownload() {
+        if(downloadJob == null){
+            if(BookHttp.hasConnection(requireContext())){
+                startDownloadJson()
+                updateBookList(booksList)
+            }else{
+                binding.progressBar.visibility = View.GONE
+                binding.txtMessage.setText(R.string.error_no_connection)
             }
+        }else if(downloadJob?.isActive == true){
+            showProgress(true)
         }
     }
 
